@@ -15,7 +15,7 @@ OPT=-O0
 
 SRCS=main.c\
      crc/crc.c\
-	 crc/crc_table.c\
+     crc/crc_table.c\
 
 
 INCLUDE_DIR=-I crc\

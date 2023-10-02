@@ -73,10 +73,10 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index, uint32_t andV
 
 void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
 {
-	if(crc == NULL)
-	{
-		return;
-	}
+    if(crc == NULL)
+    {
+        return;
+    }
 
     crc->BitWide = bitWide;
     crc->CRCTable = NULL;
@@ -98,12 +98,12 @@ void CRCGenerateTable(CRC_t * crc, void * table)
     uint8_t bitWide;
     uint32_t andValue; 
 
-	if((NULL == crc)
-	   && (NULL == table)
-	)
-	{
-		return;
-	}
+    if((NULL == crc)
+       && (NULL == table)
+    )
+    {
+        return;
+    }
 
     bitWide = crc->BitWide;
     andValue = 1 << (bitWide - 1);
@@ -129,18 +129,18 @@ void CRCGenerateTable(CRC_t * crc, void * table)
 
 void CRCSetTable(CRC_t * crc, uint8_t * table)
 {
-	if((NULL == crc)
-	   && (NULL == table)
-	)
-	{
-		return;
-	}
-	crc->CRCTable = table;
+    if((NULL == crc)
+       && (NULL == table)
+    )
+    {
+        return;
+    }
+    crc->CRCTable = table;
 }
 
 void CRCStart(CRC_t * crc, uint32_t initValue)
 {
-	crc->CRCValue = initValue;
+    crc->CRCValue = initValue;
 }
 
 void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
