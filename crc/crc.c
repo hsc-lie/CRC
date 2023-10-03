@@ -183,7 +183,6 @@ void CRCStart(CRC_t * crc, uint32_t initValue)
 void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
 {
     uint32_t i;
-    uint8_t dataTemp;
     bool isLSB;
     uint32_t crcValue;
     void * table = NULL;
