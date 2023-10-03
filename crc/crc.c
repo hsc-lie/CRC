@@ -70,6 +70,43 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index, uint32_t andV
 
 }
 
+static uint32_t CRC8UpdateByte(uint32_t crcValue, uint8_t data, void * table)
+{
+    crcValue ^= data;
+    crcValue = ((uint8_t *)(table))[crcValue & 0xff];
+    return crcValue;
+}
+
+static uint32_t CRC16MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+{
+    crcValue ^= (data << 8) & 0xff00;
+    crcValue = ((uint16_t *)(table))[(crcValue >> 8) & 0xff] ^ ((crcValue << 8) & 0xff00);
+    return crcValue;
+}
+
+
+static uint32_t CRC16LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+{
+    crcValue ^= data;
+    crcValue = ((uint16_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ff);
+    return crcValue;
+}
+
+static uint32_t CRC32MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+{
+    crcValue ^= (data << 24) & 0xff000000;
+    crcValue = ((uint32_t *)(table))[(crcValue >> 24)& 0xff] ^ ((crcValue << 8) & 0xffffff00);
+    return crcValue;
+}
+
+static uint32_t CRC32LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+{
+    crcValue ^= data;
+    crcValue = ((uint32_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ffffff);
+    return crcValue;
+}
+
+
 
 void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
 {
@@ -152,6 +189,8 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
     void * table = NULL;
     uint8_t bitWide;
 
+    uint32_t (*crcUpdateByteFunc)(uint32_t crcValue, uint8_t data, void * table);
+
     if((NULL == crc)
       || (NULL == data)
     )
@@ -164,46 +203,40 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
     table = (void *)crc->CRCTable;
     bitWide = crc->BitWide;
     
-
-    for(i = 0;i < len;++i)
+    if(FALSE != isLSB)//isLSB==TRUE
     {
-        dataTemp = data[i];
-        
-        if(FALSE != isLSB)//isLSB==TRUE
+        if(bitWide <= 8)
         {
-            crcValue ^= dataTemp;
-            if(bitWide <= 8)
-            {
-                crcValue = ((uint8_t *)(table))[crcValue & 0xff];
-            }
-            else if(bitWide <= 16)
-            {
-                crcValue = ((uint16_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ff);
-            }
-            else
-            {
-                crcValue = ((uint32_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ffffff);
-            }
+            crcUpdateByteFunc = &CRC8UpdateByte;
+        }
+        else if(bitWide <= 16)
+        {
+            crcUpdateByteFunc = &CRC16LSBUpdateByte;
         }
         else
         {
-            if(bitWide <= 8)
-            {
-                crcValue ^= dataTemp;
-                crcValue = ((uint8_t *)(table))[crcValue & 0xff];
-                    
-            }
-            else if(bitWide <= 16)
-            {
-                crcValue ^= (dataTemp << 8) & 0xff00;
-                crcValue = ((uint16_t *)(table))[(crcValue >> 8) & 0xff] ^ ((crcValue << 8) & 0xff00);
-            }
-            else
-            {
-                crcValue ^= (dataTemp << 24) & 0xff000000;
-                crcValue = ((uint32_t *)(table))[(crcValue >> 24)& 0xff] ^ ((crcValue << 8) & 0xffffff00);
-            }
+            crcUpdateByteFunc = &CRC32LSBUpdateByte;
         }
+    }
+    else
+    {
+        if(bitWide <= 8)
+        {
+            crcUpdateByteFunc = &CRC8UpdateByte;
+        }
+        else if(bitWide <= 16)
+        {
+            crcUpdateByteFunc = &CRC16MSBUpdateByte;
+        }
+        else
+        {
+            crcUpdateByteFunc = &CRC32MSBUpdateByte;
+        }
+    }
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue = crcUpdateByteFunc(crcValue, data[i], table);
     }
 
     crc->CRCValue = crcValue;
