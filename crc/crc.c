@@ -11,6 +11,13 @@ static uint8_t ReversalBit8(uint8_t value)
 }
 */
 
+/*
+ * @函数名  ReversalBit
+ * @用  途  反转数据位(内部调用)
+ * @参  数  value:需要反转的原始值
+ *          bitWide:原始值的位宽
+ * @返回值  反转后的值
+*/
 static uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
 {
     uint32_t i;
@@ -26,12 +33,19 @@ static uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
     return temp;
 }
 
-
-static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index, uint32_t andValue)
+/*
+ * @函数名  CRCCalculateTableValue
+ * @用  途  计算CRC表中的一个元素的值(内部调用)
+ * @参  数  crc:crc结构体指针
+ *          index:数组下标
+ * @返回值  CRC表中元素的值
+*/
+static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index)
 {
     uint32_t i;
     bool isLSB;
     uint8_t bitWide;
+    uint32_t andValue;
     uint32_t crcTableValue;
     uint32_t poly;
 
@@ -46,6 +60,7 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index, uint32_t andV
     }
     else
     {
+        andValue = 1 << (bitWide - 1);
         if(bitWide > 8)
         {
             crcTableValue <<= bitWide - 8;
@@ -67,9 +82,16 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index, uint32_t andV
     }
 
     return crcTableValue;
-
 }
 
+/*
+ * @函数名  CRC8UpdateByte
+ * @用  途  CRC8计算更新一个字节(内部调用)
+ * @参  数  crcValue:更新前CRC校验值
+ *          data:需要校验的原始数据
+ *          table:CRC表的指针
+ * @返回值  更新后的CRC校验值
+*/
 static uint32_t CRC8UpdateByte(uint32_t crcValue, uint8_t data, void * table)
 {
     crcValue ^= data;
@@ -77,6 +99,14 @@ static uint32_t CRC8UpdateByte(uint32_t crcValue, uint8_t data, void * table)
     return crcValue;
 }
 
+/*
+ * @函数名  CRC16MSBUpdateByte
+ * @用  途  CRC16MSB计算更新一个字节(内部调用)
+ * @参  数  crcValue:更新前CRC校验值
+ *          data:需要校验的原始数据
+ *          table:CRC表的指针
+ * @返回值  更新后的CRC校验值
+*/
 static uint32_t CRC16MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
 {
     crcValue ^= (data << 8) & 0xff00;
@@ -84,7 +114,14 @@ static uint32_t CRC16MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
     return crcValue;
 }
 
-
+/*
+ * @函数名  CRC16LSBUpdateByte
+ * @用  途  CRC16LSB计算更新一个字节(内部调用)
+ * @参  数  crcValue:更新前CRC校验值
+ *          data:需要校验的原始数据
+ *          table:CRC表的指针
+ * @返回值  更新后的CRC校验值
+*/
 static uint32_t CRC16LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
 {
     crcValue ^= data;
@@ -92,6 +129,14 @@ static uint32_t CRC16LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
     return crcValue;
 }
 
+/*
+ * @函数名  CRC32MSBUpdateByte
+ * @用  途  CRC32MSB计算更新一个字节(内部调用)
+ * @参  数  crcValue:更新前CRC校验值
+ *          data:需要校验的原始数据
+ *          table:CRC表的指针
+ * @返回值  更新后的CRC校验值
+*/
 static uint32_t CRC32MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
 {
     crcValue ^= (data << 24) & 0xff000000;
@@ -99,6 +144,14 @@ static uint32_t CRC32MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
     return crcValue;
 }
 
+/*
+ * @函数名  CRC32LSBUpdateByte
+ * @用  途  CRC32LSB计算更新一个字节(内部调用)
+ * @参  数  crcValue:更新前CRC校验值
+ *          data:需要校验的原始数据
+ *          table:CRC表的指针
+ * @返回值  更新后的CRC校验值
+*/
 static uint32_t CRC32LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
 {
     crcValue ^= data;
@@ -108,6 +161,16 @@ static uint32_t CRC32LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
 
 
 
+/*
+ * @函数名  CRCInit
+ * @用  途  CRC结构体初始化
+ * @参  数  crc:CRC结构体指针
+ *          bitWide:CRC位宽(8,16,32)
+ *          poly:多项式的值,这里不需要根据LSB和MSB进行手动反转
+ *               例如x^8+x^2+x+1,这里poly都填0x07,函数内部会根据LSB和MSB进行反转
+ *          isLSB:TRUE为LSB,FALSE为MSB
+ * @返回值  
+*/
 void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
 {
     if(crc == NULL)
@@ -129,11 +192,24 @@ void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
     }
 }
 
+/*
+ * @函数名  CRCGenerateTable
+ * @用  途  生成CRC的表
+ *          如果不改变参数,该函数只需初始时候调用一次
+ *          生成的表在RAM中,占较多的空间
+ *          RAM较小的如单片机可以手动设置已经计算好的const类型的表,见CRCSetTable函数
+ * @参  数  crc:CRC结构体指针
+ *          void:CRC表的指针
+ *               请在之前分配好内存
+ *               8位需要256*1字节(例uint8_t Table[256];)
+ *               16位需要256*2字节(例uint16_t Table[256];)
+ *               32位需要256*4字节(例uint32_t Table[256];)
+ * @返回值  
+*/
 void CRCGenerateTable(CRC_t * crc, void * table)
 {
     uint32_t i;
     uint8_t bitWide;
-    uint32_t andValue; 
 
     if((NULL == crc)
        && (NULL == table)
@@ -143,27 +219,35 @@ void CRCGenerateTable(CRC_t * crc, void * table)
     }
 
     bitWide = crc->BitWide;
-    andValue = 1 << (bitWide - 1);
 
     for(i = 0;i < 256;++i)
     {
         if(bitWide <= 8)
         {
-            ((uint8_t *)table)[i] = (uint8_t)CRCCalculateTableValue(crc, i, andValue);
+            ((uint8_t *)table)[i] = (uint8_t)CRCCalculateTableValue(crc, i);
         }
         else if(bitWide <= 16)
         {
-            ((uint16_t *)table)[i] = (uint16_t)CRCCalculateTableValue(crc, i, andValue);
+            ((uint16_t *)table)[i] = (uint16_t)CRCCalculateTableValue(crc, i);
         }
         else
         {    
-            ((uint32_t *)table)[i] = (uint32_t)CRCCalculateTableValue(crc, i, andValue);
+            ((uint32_t *)table)[i] = (uint32_t)CRCCalculateTableValue(crc, i);
         }
     }
 
     crc->CRCTable = table;
 }
 
+/*
+ * @函数名  CRCSetTable
+ * @用  途  设置CRC的表
+ * @参  数  crc:CRC结构体指针
+ *          void:已经计算好的CRC表的指针
+ *               设置的表一定要与CRC的参数对应
+ *               一般用于以及固定的const类型的表,见crc_table.c
+ * @返回值  
+*/
 void CRCSetTable(CRC_t * crc, uint8_t * table)
 {
     if((NULL == crc)
@@ -175,11 +259,26 @@ void CRCSetTable(CRC_t * crc, uint8_t * table)
     crc->CRCTable = table;
 }
 
+/*
+ * @函数名  CRCStart
+ * @用  途  CRC开始计算时,或重新计算时调用
+ * @参  数  crc:CRC结构体指针
+ *          initValue:CRC计算的初始值
+ * @返回值  
+*/
 void CRCStart(CRC_t * crc, uint32_t initValue)
 {
     crc->CRCValue = initValue;
 }
 
+/*
+ * @函数名  CRCUpdate
+ * @用  途  CRC校验计算,不一定要一次算完,可以将数据分块,多次调用该函数进行计算
+ * @参  数  crc:CRC结构体指针
+ *          data:需要校验的原始数据
+ *          len:原始数据的长度
+ * @返回值  
+*/
 void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
 {
     uint32_t i;
@@ -199,7 +298,7 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
 
     isLSB = crc->IsLSB;
     crcValue = crc->CRCValue;
-    table = (void *)crc->CRCTable;
+    table = crc->CRCTable;
     bitWide = crc->BitWide;
     
     if(FALSE != isLSB)//isLSB==TRUE
@@ -241,6 +340,13 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
     crc->CRCValue = crcValue;
 }
 
+/*
+ * @函数名  CRCGetCheckValue
+ * @用  途  获取当前CRC校验的值
+ * @参  数  crc:CRC结构体指针
+ *          xorOutValue:结果需要异或的值
+ * @返回值  
+*/
 uint32_t CRCGetCheckValue(CRC_t * crc, uint32_t xorOutValue)
 {
     uint32_t checkValue;
@@ -249,3 +355,4 @@ uint32_t CRCGetCheckValue(CRC_t * crc, uint32_t xorOutValue)
 
     return checkValue;
 }
+

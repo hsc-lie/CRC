@@ -20,6 +20,13 @@ uint8_t CRC8Table[256] = {0};
 uint16_t CRC16Table[256] = {0};
 uint32_t CRC32Table[256] = {0};
 
+/*
+ * @函数名  ReversalBit
+ * @用  途  反转数据位
+ * @参  数  value:需要反转的原始值
+ *          bitWide:原始值的位宽
+ * @返回值  反转后的值
+*/
 uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
 {
     uint32_t i;
@@ -35,6 +42,12 @@ uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
     return temp;
 }
 
+/*
+ * @函数名  PolyPrintf
+ * @用  途  在终端打印多项式
+ * @参  数  poly:多项式的值
+ * @返回值  
+*/
 void PolyPrintf(uint32_t poly)
 {
     uint32_t i;
@@ -72,6 +85,12 @@ void PolyPrintf(uint32_t poly)
     
 }
 
+/*
+ * @函数名  CRCInfoPrintf
+ * @用  途  在终端打印CRC相关信息
+ * @参  数  crc:CRC结构体指针
+ * @返回值  
+*/
 void CRCInfoPrintf(CRC_t * crc)
 {
     uint32_t poly;
@@ -97,6 +116,12 @@ void CRCInfoPrintf(CRC_t * crc)
     }
 }
 
+/*
+ * @函数名  Test
+ * @用  途  测试用
+ * @参  数  
+ * @返回值  
+*/
 void Test()
 {
     uint32_t poly;
@@ -168,11 +193,18 @@ void Test()
 
 }
 
-
+/*
+ * @函数名  GenerateCRCTableArrName
+ * @用  途  生成CRC表的数组名
+ * @参  数  crc:CRC结构体指针
+ *          tableArrName:生成好的数组名
+ * @返回值  
+*/
 void GenerateCRCTableArrName(CRC_t * crc, char * tableArrName)
 {
     bool isLSB;
     uint8_t bitWide;
+    uint8_t arrBitWide;
     uint32_t poly;
 
     isLSB = crc->IsLSB;
@@ -181,27 +213,35 @@ void GenerateCRCTableArrName(CRC_t * crc, char * tableArrName)
 
     if(bitWide <= 8)
     {
-        bitWide = 8;
+        arrBitWide = 8;
     }
     else if(bitWide <= 16)
     {
-        bitWide = 16;
+        arrBitWide = 16;
     }
     else
     {
-        bitWide = 32;
+        arrBitWide = 32;
     }
 
     if(FALSE != isLSB)//isLSB==TRUE
     {
-        sprintf(tableArrName, "const uint%d_t CRCTableLSB0x%x[256]", bitWide, poly);
+        poly = ReversalBit(poly,bitWide);
+        sprintf(tableArrName, "const uint%d_t CRCTableLSB0x%x[256]", arrBitWide, poly);
     }
     else
     {
-        sprintf(tableArrName, "const uint%d_t CRCTableMSB0x%x[256]", bitWide, poly);
+        sprintf(tableArrName, "const uint%d_t CRCTableMSB0x%x[256]", arrBitWide, poly);
     }
 }
 
+/*
+ * @函数名  GenerateCRCTableArrDataText
+ * @用  途  生成CRC表数组数据部分的文本
+ * @参  数  crc:CRC结构体指针
+ *          tableArrDataText:生成好的数组数据文本
+ * @返回值  
+*/
 void GenerateCRCTableArrDataText(CRC_t * crc, char * tableArrDataText)
 {
     uint32_t i;
@@ -240,6 +280,13 @@ void GenerateCRCTableArrDataText(CRC_t * crc, char * tableArrDataText)
 
 }
 
+/*
+ * @函数名  GenerateCRCTableText
+ * @用  途  生成CRC表数组的文本
+ * @参  数  crc:CRC结构体指针
+ *          text:生成好的数组文本
+ * @返回值  
+*/
 void GenerateCRCTableText(CRC_t * crc, char * text)
 {
     char tableArrName[64];
@@ -252,7 +299,12 @@ void GenerateCRCTableText(CRC_t * crc, char * text)
 
 }
 
-
+/*
+ * @函数名  GenerateCRCTableFile
+ * @用  途  生成存放CRC表数组的文件
+ * @参  数  
+ * @返回值  
+*/
 void GenerateCRCTableFile()
 {
     FILE * f;
@@ -313,6 +365,8 @@ void GenerateCRCTableFile()
     fprintf(f, "\r\n");
     
     fprintf(f, "#endif /*__CRC_TABLE_H_*/"); 
+    
+    fprintf(f, "\r\n\r\n");
     
     fclose(f);
 }

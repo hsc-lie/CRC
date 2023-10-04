@@ -21,11 +21,11 @@ typedef unsigned int      uint32_t;
 
 typedef struct
 {
-    bool IsLSB;
-    uint8_t BitWide;
-    uint32_t Poly;
-    uint32_t CRCValue;
-    const void * CRCTable;
+    bool IsLSB;                //FALSE为MSB,TRUE为LSB
+    uint8_t BitWide;           //位宽(例如8,16,32)
+    uint32_t Poly;             //多项式的值
+    uint32_t CRCValue;         //CRC校验的值(未经过异或)
+    void * CRCTable;           //CRC表的指针
 }CRC_t;
 
 
