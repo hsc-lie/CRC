@@ -3,6 +3,11 @@ target_sources(${CRC_LIB_NAME}
     crc.c
 )
 
+target_sources(${TEST_EXE_NAME}
+    PRIVATE
+    crc_table.c
+)
+
 target_include_directories(${CRC_LIB_NAME}
     PUBLIC
     .

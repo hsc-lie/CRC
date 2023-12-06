@@ -11,7 +11,7 @@ set(CRC_LIB_NAME crc)
 set(TEST_EXE_NAME crc_test)
 
 #是否开启更详细的编译过程信息显示
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # 彩色日志输出；
 set(CMAKE_COLOR_DIAGNOSTICS TRUE)
@@ -36,7 +36,6 @@ target_compile_definitions(${TEST_EXE_NAME}
 target_sources(${TEST_EXE_NAME}
     PRIVATE
     main.c
-    crc/crc_table.c 
 )
 
 #编译参数
