@@ -317,7 +317,11 @@ void GenerateCRCTableFile()
     char tableArrName[64];
     char tableArrText[4096];
 
-    mkdir(tableDIR, 0777);
+    #if(defined(Linux))
+        mkdir(tableDIR, 0777);
+    #elif(defined(Windows))
+        mkdir(tableDIR);
+    #endif
 
     f = fopen(tableCFilePath, "w");
 
