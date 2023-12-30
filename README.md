@@ -25,6 +25,3 @@ Windows环境下，以MinGW64为例
     cmake --build .
 
 输出的可执行文件和静态库均在./build/out文件夹内
-
-### 暂没做太多测试，可能存在较多bug
-
