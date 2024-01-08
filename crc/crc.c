@@ -1,5 +1,7 @@
 #include "crc.h"
 
+typedef uint32_t (*CRCUpdateByteFunc_t)(void *table, uint32_t crcValue, uint8_t *data, uint32_t len);
+
 /*
 static uint8_t ReversalBit8(uint8_t value)
 {
@@ -40,7 +42,7 @@ static uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
  *          index:数组下标
  * @返回值  CRC表中元素的值
 */
-static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index)
+static uint32_t CRCCalculateTableValue(CRC_t *crc, uint8_t index)
 {
     uint32_t i;
     bool isLSB;
@@ -72,13 +74,11 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index)
         if(TRUE == crc->IsLSB)
         {
             crcTableValue = (crcTableValue & andValue) ? ((crcTableValue >> 1) ^ poly) : (crcTableValue >> 1);
-
         }
         else
         {
             crcTableValue = (crcTableValue & andValue) ? ((crcTableValue << 1) ^ poly) : (crcTableValue << 1);
         }
-
     }
 
     return crcTableValue;
@@ -92,10 +92,16 @@ static uint32_t CRCCalculateTableValue(CRC_t * crc, uint8_t index)
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC8UpdateByte(uint32_t crcValue, uint8_t data, void * table)
+static uint32_t CRC8UpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
 {
-    crcValue ^= data;
-    crcValue = ((uint8_t *)(table))[crcValue & 0xff];
+    uint32_t i;
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue ^= data[i];
+        crcValue = ((uint8_t *)(table))[crcValue & 0xff];
+    }
+    
     return crcValue;
 }
 
@@ -107,10 +113,16 @@ static uint32_t CRC8UpdateByte(uint32_t crcValue, uint8_t data, void * table)
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC16MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+static uint32_t CRC16MSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
 {
-    crcValue ^= (data << 8) & 0xff00;
-    crcValue = ((uint16_t *)(table))[(crcValue >> 8) & 0xff] ^ ((crcValue << 8) & 0xff00);
+    uint32_t i;
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue ^= (data[i] << 8) & 0xff00;
+        crcValue = ((uint16_t *)(table))[(crcValue >> 8) & 0xff] ^ ((crcValue << 8) & 0xff00);
+    }
+
     return crcValue;
 }
 
@@ -122,10 +134,16 @@ static uint32_t CRC16MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC16LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+static uint32_t CRC16LSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
 {
-    crcValue ^= data;
-    crcValue = ((uint16_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ff);
+    uint32_t i;
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue ^= data[i];
+        crcValue = ((uint16_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ff);
+    }
+
     return crcValue;
 }
 
@@ -137,10 +155,16 @@ static uint32_t CRC16LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC32MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+static uint32_t CRC32MSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
 {
-    crcValue ^= (data << 24) & 0xff000000;
-    crcValue = ((uint32_t *)(table))[(crcValue >> 24)& 0xff] ^ ((crcValue << 8) & 0xffffff00);
+    uint32_t i;
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue ^= (data[i] << 24) & 0xff000000;
+        crcValue = ((uint32_t *)(table))[(crcValue >> 24)& 0xff] ^ ((crcValue << 8) & 0xffffff00);
+    }
+
     return crcValue;
 }
 
@@ -152,14 +176,18 @@ static uint32_t CRC32MSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC32LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table)
+static uint32_t CRC32LSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
 {
-    crcValue ^= data;
-    crcValue = ((uint32_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ffffff);
+    uint32_t i;
+
+    for(i = 0;i < len;++i)
+    {
+        crcValue ^= data[i];
+        crcValue = ((uint32_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ffffff);
+    }
+
     return crcValue;
 }
-
-
 
 /*
  * @函数名  CRCInit
@@ -171,7 +199,7 @@ static uint32_t CRC32LSBUpdateByte(uint32_t crcValue, uint8_t data, void * table
  *          isLSB:TRUE为LSB,FALSE为MSB
  * @返回值  
 */
-void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
+void CRCInit(CRC_t *crc, uint8_t bitWide, uint32_t poly, bool isLSB)
 {
     if(crc == NULL)
     {
@@ -206,7 +234,7 @@ void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB)
  *               32位需要256*4字节(例uint32_t Table[256];)
  * @返回值  
 */
-void CRCGenerateTable(CRC_t * crc, void * table)
+void CRCGenerateTable(CRC_t *crc, void *table)
 {
     uint32_t i;
     uint8_t bitWide;
@@ -248,7 +276,7 @@ void CRCGenerateTable(CRC_t * crc, void * table)
  *               一般用于以及固定的const类型的表,见crc_table.c
  * @返回值  
 */
-void CRCSetTable(CRC_t * crc, uint8_t * table)
+void CRCSetTable(CRC_t *crc, uint8_t *table)
 {
     if((NULL == crc)
        && (NULL == table)
@@ -266,7 +294,7 @@ void CRCSetTable(CRC_t * crc, uint8_t * table)
  *          initValue:CRC计算的初始值
  * @返回值  
 */
-void CRCStart(CRC_t * crc, uint32_t initValue)
+void CRCStart(CRC_t *crc, uint32_t initValue)
 {
     crc->CRCValue = initValue;
 }
@@ -279,15 +307,13 @@ void CRCStart(CRC_t * crc, uint32_t initValue)
  *          len:原始数据的长度
  * @返回值  
 */
-void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
+void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len)
 {
-    uint32_t i;
     bool isLSB;
     uint32_t crcValue;
     void * table = NULL;
     uint8_t bitWide;
-
-    uint32_t (*crcUpdateByteFunc)(uint32_t crcValue, uint8_t data, void * table);
+    CRCUpdateByteFunc_t crcUpdateByteFunc;
 
     if((NULL == crc)
       || (NULL == data)
@@ -332,10 +358,7 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
         }
     }
 
-    for(i = 0;i < len;++i)
-    {
-        crcValue = crcUpdateByteFunc(crcValue, data[i], table);
-    }
+    crcValue = crcUpdateByteFunc(table, crcValue, data, len);
 
     crc->CRCValue = crcValue;
 }
@@ -347,7 +370,7 @@ void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len)
  *          xorOutValue:结果需要异或的值
  * @返回值  
 */
-uint32_t CRCGetCheckValue(CRC_t * crc, uint32_t xorOutValue)
+uint32_t CRCGetCheckValue(CRC_t *crc, uint32_t xorOutValue)
 {
     uint32_t checkValue;
 
@@ -355,4 +378,3 @@ uint32_t CRCGetCheckValue(CRC_t * crc, uint32_t xorOutValue)
 
     return checkValue;
 }
-

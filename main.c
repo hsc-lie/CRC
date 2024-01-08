@@ -144,7 +144,7 @@ void Test()
     CRCGenerateTable(&CRC8, CRC8Table);
     CRCStart(&CRC8, initValue);
     CRCUpdate(&CRC8, (uint8_t *)str, strlen(str));
-    crcValue = CRCGetCheckValue(&CRC8, xorOutValue);
+    crcValue = CRCGetCheckValue(&CRC8, xorOutValue);//0xCB
 
     CRCInfoPrintf(&CRC8);
     printf("init:0x%x\n", initValue);
@@ -162,7 +162,7 @@ void Test()
     CRCGenerateTable(&CRC16, CRC16Table);
     CRCStart(&CRC16, initValue);
     CRCUpdate(&CRC16, (uint8_t *)str, strlen(str));
-    crcValue = CRCGetCheckValue(&CRC16, xorOutValue);
+    crcValue = CRCGetCheckValue(&CRC16, xorOutValue);//0xA455
 
     
     CRCInfoPrintf(&CRC16);
@@ -181,7 +181,7 @@ void Test()
     CRCGenerateTable(&CRC32, CRC32Table);
     CRCStart(&CRC32, initValue);
     CRCUpdate(&CRC32, (uint8_t *)str, strlen(str));
-    crcValue = CRCGetCheckValue(&CRC32, xorOutValue);    
+    crcValue = CRCGetCheckValue(&CRC32, xorOutValue);//0xCBF53A1C
     
     
     CRCInfoPrintf(&CRC32);

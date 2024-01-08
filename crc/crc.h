@@ -18,7 +18,6 @@ typedef unsigned char     uint8_t;
 typedef unsigned short    uint16_t;
 typedef unsigned int      uint32_t;
 
-
 typedef struct
 {
     bool IsLSB;                //FALSE为MSB,TRUE为LSB
@@ -30,12 +29,12 @@ typedef struct
 
 
 
-extern void CRCInit(CRC_t * crc, uint8_t bitWide, uint32_t poly, bool isLSB);
-extern void CRCGenerateTable(CRC_t * crc, void * table);
-extern void CRCSetTable(CRC_t * crc, uint8_t * table);
-extern void CRCStart(CRC_t * crc, uint32_t initValue);
-extern void CRCUpdate(CRC_t * crc, uint8_t * data, uint32_t len);
-extern uint32_t CRCGetCheckValue(CRC_t * crc, uint32_t xorOutValue);
+extern void CRCInit(CRC_t *crc, uint8_t bitWide, uint32_t poly, bool isLSB);
+extern void CRCGenerateTable(CRC_t *crc, void *table);
+extern void CRCSetTable(CRC_t *crc, uint8_t *table);
+extern void CRCStart(CRC_t *crc, uint32_t initValue);
+extern void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len);
+extern uint32_t CRCGetCheckValue(CRC_t *crc, uint32_t xorOutValue);
 
 #endif /*__CRC_H_*/
  
