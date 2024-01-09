@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 3.28.0)
 
-set(CMAKE_SYSTEM_NAME Generic)
+project(crc_test C)
 
-project(crc C)
-
-#静态库名
-set(CRC_LIB_NAME crc)
-
-#设置测试的可执行文件名
-set(TEST_EXE_NAME crc_test)
+add_executable(${PROJECT_NAME})
 
 #是否开启更详细的编译过程信息显示
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
@@ -18,34 +12,37 @@ set(CMAKE_COLOR_DIAGNOSTICS TRUE)
 
 #设置生成目标的目录
 set(EXECUTABLE_OUTPUT_PATH out)
-set(LIBRARY_OUTPUT_PATH out)
 
-#生成静态库
-add_library(${CRC_LIB_NAME} STATIC)
-#测试
-add_executable(${TEST_EXE_NAME})
+#C标准
+set(C_STD -std=c99)
 
-add_subdirectory(crc)
+#优化等级
+set(OPT -O0 -g)
 
 #全局宏
-target_compile_definitions(${TEST_EXE_NAME}
+target_compile_definitions(${PROJECT_NAME}
     PRIVATE
     ${CMAKE_HOST_SYSTEM_NAME}
 )
 
+#头文件路径
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    crc
+)
+
 #源文件
-target_sources(${TEST_EXE_NAME}
+target_sources(${PROJECT_NAME}
     PRIVATE
     main.c
+    crc/crc.c
+    crc/crc_table.c
 )
 
 #编译参数
-target_compile_options(${TEST_EXE_NAME}
+target_compile_options(${PROJECT_NAME}
     PRIVATE
-    -std=c99 -Wall -O0 -g
-)
-
-#链接静态库
-target_link_libraries(${TEST_EXE_NAME}
-    ${CRC_LIB_NAME}
+    ${C_STD}
+    -Wall
+    ${OPT}
 )

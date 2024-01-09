@@ -10,6 +10,7 @@
 - 3.crc/crc_table.c和crc/crc_table.h这两个文件为存放CRC表的数组可根据需要删减,数组的生成在main.c中的GenereteCRCTableFile()函数中生成
 
 ### 编译当前工程的示例
+#### cmake构建
 Linux环境下
 
     mkdir build
@@ -23,5 +24,9 @@ Windows环境下，以MinGW64为例
     cd build
     cmake -G "MinGW Makefiles" ..
     cmake --build .
+
+#### make构建
+
+    make
 
 输出的可执行文件和静态库均在./build/out文件夹内
