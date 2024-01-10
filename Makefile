@@ -1,24 +1,45 @@
 TARGET=crc_test
 
+#编译中间生成文件路径
+OBJ_DIR=build/obj
 #编译输出文件路径
-BUILD_DIR=build
-OBJ_DIR=$(BUILD_DIR)/obj
-OUT_DIR=$(BUILD_DIR)/out
+OUT_DIR=build/out
 
-#设置删除指令
+ifneq ($(findstring $(OS), "Windows_NT"), )
+	OS_TYPE=Windows
+else ifneq ($(findstring $(OS), "Linux"), )
+	OS_TYPE=Linux
+endif
+
+#设置创建文件夹指命令
+MKDIR=mkdir -p
+#设置删除命令
 RM=rm -rf
+
+#0:Release
+#1:Debug
+DEBUG=1
 
 #设置编译器
 CC=gcc
 
+#设置C标准
+C_STD=-std=c99
+
 #优化等级
-OPT=-O0 -g
+ifeq ($(DEBUG), 0)
+	OPT=-O3
+else
+	OPT=-O0 -g
+endif
 
 #C编译参数
-C_FLAGS=-std=c99 -Wall $(OPT) -MMD -MP -fdiagnostics-color=always
+C_FLAGS=$(C_STD) $(OPT) -Wall -MMD -MP -fdiagnostics-color=always
 
 #C全局宏定义
-C_DEFINES=Windows
+C_DEFINES=\
+	$(OS_TYPE) \
+
 C_DEFINE_FLAGS=$(addprefix -D, $(C_DEFINES))
 
 #头文件路径
@@ -50,9 +71,6 @@ $(OBJ_DIR):$(BUILD_DIR)
 
 $(OUT_DIR):$(BUILD_DIR)
 	mkdir -p $(OUT_DIR)
-
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
 
 -include $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.c=.d)))
 
