@@ -66,11 +66,11 @@ $(OUT_DIR)/$(TARGET):$(OBJS) Makefile | $(OUT_DIR)
 $(OBJ_DIR)/%.o:%.c Makefile | $(OBJ_DIR)
 	$(CC) -c $< $(C_DEFINE_FLAGS) $(INCLUDE_FLAGS) $(C_FLAGS) -o $@
 
-$(OBJ_DIR):$(BUILD_DIR)
-	mkdir -p $(OBJ_DIR)
+$(OBJ_DIR):
+	$(MKDIR) $(OBJ_DIR)
 
-$(OUT_DIR):$(BUILD_DIR)
-	mkdir -p $(OUT_DIR)
+$(OUT_DIR):
+	$(MKDIR) $(OUT_DIR)
 
 -include $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.c=.d)))
 
