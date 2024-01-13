@@ -1,6 +1,6 @@
 #include "crc.h"
 
-typedef uint32_t (*CRCUpdateByteFunc_t)(void *table, uint32_t crcValue, uint8_t *data, uint32_t len);
+typedef uint32_t (*CRCUpdateByteFunc_t)(void *table, uint32_t checksum, uint8_t *data, uint32_t len);
 
 /*
 static uint8_t ReversalBit8(uint8_t value)
@@ -55,9 +55,10 @@ static uint32_t CRCCalculateTableValue(CRC_t *crc, uint8_t index)
     bitWide = crc->BitWide;
     poly = crc->Poly;
     crcTableValue = index;
-    
+
     if(FALSE != isLSB)//isLSB==TRUE
     {
+        poly = ReversalBit(poly, bitWide);
         andValue = 0x1;
     }
     else
@@ -87,106 +88,106 @@ static uint32_t CRCCalculateTableValue(CRC_t *crc, uint8_t index)
 /*
  * @函数名  CRC8UpdateByte
  * @用  途  CRC8计算更新一个字节(内部调用)
- * @参  数  crcValue:更新前CRC校验值
+ * @参  数  checksum:更新前CRC校验值
  *          data:需要校验的原始数据
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC8UpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
+static uint32_t CRC8UpdateByte(void *table, uint32_t checksum, uint8_t *data, uint32_t len)
 {
     uint32_t i;
 
     for(i = 0;i < len;++i)
     {
-        crcValue ^= data[i];
-        crcValue = ((uint8_t *)(table))[crcValue & 0xff];
+        checksum ^= data[i];
+        checksum = ((uint8_t *)(table))[checksum & 0xff];
     }
     
-    return crcValue;
+    return checksum;
 }
 
 /*
  * @函数名  CRC16MSBUpdateByte
  * @用  途  CRC16MSB计算更新一个字节(内部调用)
- * @参  数  crcValue:更新前CRC校验值
+ * @参  数  checksum:更新前CRC校验值
  *          data:需要校验的原始数据
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC16MSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
+static uint32_t CRC16MSBUpdateByte(void *table, uint32_t checksum, uint8_t *data, uint32_t len)
 {
     uint32_t i;
 
     for(i = 0;i < len;++i)
     {
-        crcValue ^= (data[i] << 8) & 0xff00;
-        crcValue = ((uint16_t *)(table))[(crcValue >> 8) & 0xff] ^ ((crcValue << 8) & 0xff00);
+        checksum ^= (data[i] << 8) & 0xff00;
+        checksum = ((uint16_t *)(table))[(checksum >> 8) & 0xff] ^ ((checksum << 8) & 0xff00);
     }
 
-    return crcValue;
+    return checksum;
 }
 
 /*
  * @函数名  CRC16LSBUpdateByte
  * @用  途  CRC16LSB计算更新一个字节(内部调用)
- * @参  数  crcValue:更新前CRC校验值
+ * @参  数  checksum:更新前CRC校验值
  *          data:需要校验的原始数据
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC16LSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
+static uint32_t CRC16LSBUpdateByte(void *table, uint32_t checksum, uint8_t *data, uint32_t len)
 {
     uint32_t i;
 
     for(i = 0;i < len;++i)
     {
-        crcValue ^= data[i];
-        crcValue = ((uint16_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ff);
+        checksum ^= data[i];
+        checksum = ((uint16_t *)(table))[checksum & 0xff] ^ ((checksum >> 8) & 0x00ff);
     }
 
-    return crcValue;
+    return checksum;
 }
 
 /*
  * @函数名  CRC32MSBUpdateByte
  * @用  途  CRC32MSB计算更新一个字节(内部调用)
- * @参  数  crcValue:更新前CRC校验值
+ * @参  数  checksum:更新前CRC校验值
  *          data:需要校验的原始数据
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC32MSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
+static uint32_t CRC32MSBUpdateByte(void *table, uint32_t checksum, uint8_t *data, uint32_t len)
 {
     uint32_t i;
 
     for(i = 0;i < len;++i)
     {
-        crcValue ^= (data[i] << 24) & 0xff000000;
-        crcValue = ((uint32_t *)(table))[(crcValue >> 24)& 0xff] ^ ((crcValue << 8) & 0xffffff00);
+        checksum ^= (data[i] << 24) & 0xff000000;
+        checksum = ((uint32_t *)(table))[(checksum >> 24)& 0xff] ^ ((checksum << 8) & 0xffffff00);
     }
 
-    return crcValue;
+    return checksum;
 }
 
 /*
  * @函数名  CRC32LSBUpdateByte
  * @用  途  CRC32LSB计算更新一个字节(内部调用)
- * @参  数  crcValue:更新前CRC校验值
+ * @参  数  checksum:更新前CRC校验值
  *          data:需要校验的原始数据
  *          table:CRC表的指针
  * @返回值  更新后的CRC校验值
 */
-static uint32_t CRC32LSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data, uint32_t len)
+static uint32_t CRC32LSBUpdateByte(void *table, uint32_t checksum, uint8_t *data, uint32_t len)
 {
     uint32_t i;
 
     for(i = 0;i < len;++i)
     {
-        crcValue ^= data[i];
-        crcValue = ((uint32_t *)(table))[crcValue & 0xff] ^ ((crcValue >> 8) & 0x00ffffff);
+        checksum ^= data[i];
+        checksum = ((uint32_t *)(table))[checksum & 0xff] ^ ((checksum >> 8) & 0x00ffffff);
     }
 
-    return crcValue;
+    return checksum;
 }
 
 /*
@@ -195,7 +196,7 @@ static uint32_t CRC32LSBUpdateByte(void *table, uint32_t crcValue, uint8_t *data
  * @参  数  crc:CRC结构体指针
  *          bitWide:CRC位宽(8,16,32)
  *          poly:多项式的值,这里不需要根据LSB和MSB进行手动反转
- *               例如x^8+x^2+x+1,这里poly都填0x07,函数内部会根据LSB和MSB进行反转
+ *               例如x^8+x^2+x+1,这里poly都填0x07,CRCCalculateTableValue函数内部会根据LSB和MSB进行反转
  *          isLSB:TRUE为LSB,FALSE为MSB
  * @返回值  
 */
@@ -209,15 +210,6 @@ void CRCInit(CRC_t *crc, uint8_t bitWide, uint32_t poly, bool isLSB)
     crc->BitWide = bitWide;
     crc->CRCTable = NULL;
     crc->IsLSB = isLSB;
-
-    if(FALSE != isLSB)//isLSB==TRUE
-    {
-        crc->Poly = ReversalBit(poly, bitWide);
-    }
-    else
-    {
-        crc->Poly = poly;
-    }
 }
 
 /*
@@ -296,7 +288,7 @@ void CRCSetTable(CRC_t *crc, uint8_t *table)
 */
 void CRCStart(CRC_t *crc, uint32_t initValue)
 {
-    crc->CRCValue = initValue;
+    crc->Checksum = initValue;
 }
 
 /*
@@ -310,7 +302,7 @@ void CRCStart(CRC_t *crc, uint32_t initValue)
 void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len)
 {
     bool isLSB;
-    uint32_t crcValue;
+    uint32_t checksum;
     void * table = NULL;
     uint8_t bitWide;
     CRCUpdateByteFunc_t crcUpdateByteFunc;
@@ -323,7 +315,7 @@ void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len)
     }
 
     isLSB = crc->IsLSB;
-    crcValue = crc->CRCValue;
+    checksum = crc->Checksum;
     table = crc->CRCTable;
     bitWide = crc->BitWide;
     
@@ -358,23 +350,23 @@ void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len)
         }
     }
 
-    crcValue = crcUpdateByteFunc(table, crcValue, data, len);
+    checksum = crcUpdateByteFunc(table, checksum, data, len);
 
-    crc->CRCValue = crcValue;
+    crc->Checksum = checksum;
 }
 
 /*
- * @函数名  CRCGetCheckValue
+ * @函数名  CRCGetChecksum
  * @用  途  获取当前CRC校验的值
  * @参  数  crc:CRC结构体指针
  *          xorOutValue:结果需要异或的值
  * @返回值  
 */
-uint32_t CRCGetCheckValue(CRC_t *crc, uint32_t xorOutValue)
+uint32_t CRCGetChecksum(CRC_t *crc, uint32_t xorOutValue)
 {
-    uint32_t checkValue;
+    uint32_t checksum;
 
-    checkValue = crc->CRCValue ^ xorOutValue;
+    checksum = crc->Checksum ^ xorOutValue;
 
-    return checkValue;
+    return checksum;
 }

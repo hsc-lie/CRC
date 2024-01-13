@@ -1,15 +1,9 @@
-TARGET=crc_test
+TARGET=crc
 
 #编译中间生成文件路径
 OBJ_DIR=build/obj
 #编译输出文件路径
 OUT_DIR=build/out
-
-ifneq ($(findstring $(OS), "Windows_NT"), )
-	OS_TYPE=Windows
-else ifneq ($(findstring $(OS), "Linux"), )
-	OS_TYPE=Linux
-endif
 
 #设置创建文件夹指命令
 MKDIR=mkdir -p
@@ -18,7 +12,7 @@ RM=rm -rf
 
 #0:Release
 #1:Debug
-DEBUG=1
+DEBUG=0
 
 #设置编译器
 CC=gcc
@@ -37,22 +31,26 @@ endif
 C_FLAGS=$(C_STD) $(OPT) -Wall -MMD -MP -fdiagnostics-color=always
 
 #C全局宏定义
-C_DEFINES=\
-	$(OS_TYPE) \
-
+C_DEFINES=
 C_DEFINE_FLAGS=$(addprefix -D, $(C_DEFINES))
 
 #头文件路径
 INCLUDE_DIRS=\
+	convert \
+	cmdl \
 	crc \
+	tool \
 
 INCLUDE_FLAGS=$(addprefix -I, $(INCLUDE_DIRS))
 
 #源文件
 C_SRCS=\
-	main.c \
+	convert/convert.c \
+	cmdl/cmdl.c \
 	crc/crc.c \
 	crc/crc_table.c \
+	tool/crc_tool.c \
+	main.c \
 
 OBJS=$(addprefix $(OBJ_DIR)/, $(notdir $(C_SRCS:.c=.o)))
 

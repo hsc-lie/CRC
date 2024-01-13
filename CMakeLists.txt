@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28.0)
 
-project(crc_test C)
+project(crc C)
 
 add_executable(${PROJECT_NAME})
 
@@ -36,15 +36,21 @@ target_compile_definitions(${PROJECT_NAME}
 #头文件路径
 target_include_directories(${PROJECT_NAME}
     PRIVATE
+    convert
+    cmdl
     crc
+    tool
 )
 
 #源文件
 target_sources(${PROJECT_NAME}
     PRIVATE
-    main.c
+    convert/convert.c
+    cmdl/cmdl.c
     crc/crc.c
     crc/crc_table.c
+    tool/crc_tool.c
+    main.c
 )
 
 #编译参数
