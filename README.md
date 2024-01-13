@@ -40,9 +40,9 @@ Windows环境下，以MinGW64为例
     cmake --build .
 
 #### 3.2 使用make构建
+仅限Linux环境，Windows下需安装相关Linux命令的环境，例如Windows下安装Git，使用Git Bash命令窗口下运行
 
     make
-
 
 ### 四、工具使用说明
 #### 4.1 工具命令预览
