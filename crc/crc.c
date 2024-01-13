@@ -208,8 +208,9 @@ void CRCInit(CRC_t *crc, uint8_t bitWide, uint32_t poly, bool isLSB)
     }
 
     crc->BitWide = bitWide;
-    crc->CRCTable = NULL;
+    crc->Poly = poly;
     crc->IsLSB = isLSB;
+    crc->CRCTable = NULL;
 }
 
 /*
