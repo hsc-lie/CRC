@@ -9,8 +9,8 @@
 - 1.只需要将crc文件夹中的文件移动到自己的工程中即可
 - 2.crc/crc_table.c和crc/crc_table.h这两个文件为存放CRC表的数组可根据需要删减,数组的生成请看[4.5](#45-生成crc表的c代码数组)小节
 
-如下示例为计算字符串123456的CRC校验和，CRC参数为32位LSB，多项式为0x4C11DB7(x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x^1+1)，初始值为0xFFFFFFFF，异或值为0xFFFFFFFF，计算结果最后存在checksum变量中
-
+如下示例为计算字符串123456的CRC校验和
+CRC参数为32位LSB，多项式为0x4C11DB7(x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x^1+1)，初始值为0xFFFFFFFF，异或值为0xFFFFFFFF，计算结果最后存在checksum变量中
 
     CRC_t crc;
     uint32_t checksum;
