@@ -13,8 +13,10 @@
 CRC参数为32位LSB，多项式为0x4C11DB7(x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x^1+1)，初始值为0xFFFFFFFF，异或值为0xFFFFFFFF，计算结果最后存在checksum变量中
 
     CRC_t crc;
+    static uint32_t table[256];
     uint32_t checksum;
     CRCInit(&crc, 32, 0x4C11DB7, TRUE);
+    CRCGenerateTable(&crc, table);//或直接调用CRCSetTable函数设置已经生成好的数组，CRCGenerateTable只需调用一次
     CRCStart(&crc, 0xFFFFFFFF);
     CRCUpdate(&crc, "123456", 6);
     checksum = CRCGetChecksum(&crc, 0xFFFFFFFF);
