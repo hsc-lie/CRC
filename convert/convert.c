@@ -6,18 +6,18 @@
  * @函数名  ConvertUInt8ArrToUInt16
  * @用  途  uint8_t转uint16_t
  * @参  数  arr:uint8_t类型数组(2字节长度)
- *          type:大小端
+ *          type:大小端类型
  * @返回值  转换后的uint16_t
 */
-uint16_t ConvertUInt8ArrToUInt16(uint8_t *arr, CONVERT_END_TYPE_t type)
+uint16_t ConvertUInt8ArrToUInt16(uint8_t *arr, CONVERT_ENDIAN_TYPE_t type)
 {
     uint32_t ret = 0;
 
-    if(CONVERT_LITTLE_END == type)
+    if(CONVERT_LITTLE_ENDIAN == type)
     {
         ret = (uint32_t)arr[0] | ((uint32_t)arr[1] << 8);
     }
-    else if(CONVERT_BIG_END == type)
+    else if(CONVERT_BIG_ENDIAN == type)
     {
         ret = ((uint32_t)arr[0] << 8) | (uint32_t)arr[1];
     }
@@ -29,23 +29,49 @@ uint16_t ConvertUInt8ArrToUInt16(uint8_t *arr, CONVERT_END_TYPE_t type)
  * @函数名  ConvertUInt8ArrToUInt32
  * @用  途  uint8_t转uint32_t
  * @参  数  arr:uint8_t类型数组(4字节长度)
- *          type:大小端
+ *          type:大小端类型
  * @返回值  转换后的uint32_t
 */
-uint32_t ConvertUInt8ArrToUInt32(uint8_t *arr, CONVERT_END_TYPE_t type)
+uint32_t ConvertUInt8ArrToUInt32(uint8_t *arr, CONVERT_ENDIAN_TYPE_t type)
 {
     uint32_t ret = 0;
 
-    if(CONVERT_LITTLE_END == type)
+    if(CONVERT_LITTLE_ENDIAN == type)
     {
         ret = ((uint32_t)arr[0] | ((uint32_t)arr[1] << 8) | ((uint32_t)arr[2] << 16) | ((uint32_t)arr[3] << 24));
     }
-    else if(CONVERT_BIG_END == type)
+    else if(CONVERT_BIG_ENDIAN == type)
     {
         ret = ((uint32_t)arr[0] << 24) | ((uint32_t)arr[1] << 16) | ((uint32_t)arr[2] << 8) | ((uint32_t)arr[3]);
     }
     
     return ret;
+}
+
+/*
+ * @函数名  ConvertUInt32ToUInt8Arr
+ * @用  途  uint32_t转uint8_t
+ * @参  数  value:uint32_t值
+ *          arr:uint8_t类型数组(4字节长度)
+ *          type:大小端类型
+ * @返回值  转换后的uint32_t
+*/
+void ConvertUInt32ToUInt8Arr(uint32_t value, uint8_t *arr, CONVERT_ENDIAN_TYPE_t type)
+{
+    if(CONVERT_LITTLE_ENDIAN == type)
+    {
+        arr[0] = (uint8_t)((value >> 0) & 0xFF);
+        arr[1] = (uint8_t)((value >> 8) & 0xFF);
+        arr[2] = (uint8_t)((value >> 16) & 0xFF);
+        arr[3] = (uint8_t)((value >> 24) & 0xFF);
+    }
+    else if(CONVERT_BIG_ENDIAN == type)
+    {
+        arr[0] = (uint8_t)((value >> 24) & 0xFF);
+        arr[1] = (uint8_t)((value >> 16) & 0xFF);
+        arr[2] = (uint8_t)((value >> 8) & 0xFF);
+        arr[3] = (uint8_t)((value >> 0) & 0xFF);
+    }
 }
 
 /*

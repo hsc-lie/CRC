@@ -5,12 +5,18 @@
 - 可设置不同的多项式
 - 可设置初始值和输出异或值
 
-### 二、移植说明
+### 二、移植相关
+#### 2.1 移植到自己的工程
 - 1.只需要将crc文件夹中的文件移动到自己的工程中即可
 - 2.crc/crc_table.c和crc/crc_table.h这两个文件为存放CRC表的数组可根据需要删减,数组的生成请看[4.5](#45-生成crc表的c代码数组)小节
-
-如下示例为计算字符串123456的CRC校验和
-CRC参数为32位LSB，多项式为0x4C11DB7(x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x^1+1)，初始值为0xFFFFFFFF，异或值为0xFFFFFFFF，计算结果最后存在checksum变量中
+#### 2.2 代码调用示例
+如下示例为计算字符串123456的CRC校验和，CRC参数如下
+位宽:32位
+字节传输顺序:LSB
+多项式:0x4C11DB7(x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x^1+1)
+初始值:0xFFFFFFFF
+异或值:0xFFFFFFFF
+计算结果最后存在checksum变量中
 
     CRC_t crc;
     static uint32_t table[256];
@@ -56,7 +62,8 @@ Windows环境下，以MinGW64为例
     -h, --hex               设置对16进制的数据校验(例如计算0x12345678的Checksum: -h 12345678)
     -s, --string            设置对字符串数据校验(例如计算"123456"的Checksum: -s 123456)
     -f, --file              设置对文件进行校验(例如计算fliename文件的校验: -f filename)
-    --out-bin               设置将校验和以2进制形式写入文件中(例如将校验和输出到out.bin中: --out-bin out.bin)
+    --out-bin-little        设置将校验和以2进制小端形式写入文件中(例如将校验和输出到out.bin中: --out-bin-little out.bin)
+    --out-bin-big           设置将校验和以2进制大端形式写入文件中(例如将校验和输出到out.bin中: --out-bin-big out.bin)
     --out-txt               设置将校验和以文本形式写入到文件中(例如将校验和输出到out.txt中: --out-bin out.txt)
     -g, --generate-table    生成用于CRC计算的C代码数组(例如将代码输出到table.c中: -g table.c)
     -v, --version           打印版本信息
@@ -79,6 +86,10 @@ Windows环境下，以MinGW64为例
 如下命令可以计算filename.txt文件的CRC校验和
 
     crc -f filename.txt
+
+工具没有标志的参数默认为输入的文件路径，所以也可以简化命令，如下命令效果同上
+
+    crc filename.txt
 
 #### 4.4 将校验的结果写入到文件
 如下命令可以将对"123456"字符串的CRC校验和以2进制形式写入到out.bin文件中

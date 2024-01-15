@@ -17,7 +17,8 @@ static CMDL_ERROR_t CRCToolSetXorValue(char *param);
 static CMDL_ERROR_t CRCToolSetInHex(char *param);
 static CMDL_ERROR_t CRCToolSetInString(char *param);
 static CMDL_ERROR_t CRCToolSetInFile(char *param);
-static CMDL_ERROR_t CRCToolSetOutBinFile(char *param);
+static CMDL_ERROR_t CRCToolSetOutBinFileLittleEndian(char *param);
+static CMDL_ERROR_t CRCToolSetOutBinFileBigEndian(char *param);
 static CMDL_ERROR_t CRCToolSetOutTxtFile(char *param);
 static CMDL_ERROR_t CRCToolSetGenerateTable(char *param);
 
@@ -38,7 +39,8 @@ static CMDLParam_t CMDLParamTable[] =
     {CMDL_PARAM_TYPE_MULTIPLE, 'f', "file", CRCToolSetInFile},
 
     //输出参数设置
-    {CMDL_PARAM_TYPE_MULTIPLE, '\0', "out-bin", CRCToolSetOutBinFile},
+    {CMDL_PARAM_TYPE_MULTIPLE, '\0', "out-bin-little", CRCToolSetOutBinFileLittleEndian},
+    {CMDL_PARAM_TYPE_MULTIPLE, '\0', "out-bin-big", CRCToolSetOutBinFileBigEndian},
     {CMDL_PARAM_TYPE_MULTIPLE, '\0', "out-txt", CRCToolSetOutTxtFile},
 
     //生成crc的表
@@ -53,7 +55,7 @@ static CMDLParam_t CMDLParamTable[] =
 
 static CMDL_t CMDL = 
 {
-    //.NullFlagFunc = NULL,
+    .NotFlagParamFunc = CRCToolSetInFile,
     .ParamTable = CMDLParamTable,
     .ParamTableLen = sizeof(CMDLParamTable)/sizeof(CMDLParam_t),
 };
@@ -140,7 +142,7 @@ static void CRCPrintInfo(CRC_t *crc)
 */
 static CMDL_ERROR_t CRCToolPrintHelp(char *param)
 {
-    printf("Usage: crc [OPTION]...\n");
+    printf("Usage: crc [OPTION]... [FILE]\n");
     printf("\t-l, --lsb               set lsb\n");
     printf("\t-m, --msb               set msb\n");
     printf("\t-w, --wide              set wide(example: -w 32)\n");
@@ -151,8 +153,13 @@ static CMDL_ERROR_t CRCToolPrintHelp(char *param)
     printf("\t-h, --hex               set hex input(example: -h 12345678)\n");
     printf("\t-s, --string            set string input(example: -s 123456)\n");
     printf("\t-f, --file              set file input(example: -f filename\n");
-    printf("\t--out-bin               set output crc checksum to bin file(example:--out-bin out.bin)\n");
-    printf("\t--out-txt               set output crc checksum to text file(example:--out-txt out.txt)\n");
+    printf("\n");
+    printf("\t--out-bin-little        set output crc checksum to little-endian bin file\n");
+    printf("\t                        example:--out-bin-little out.bin\n");
+    printf("\t--out-bin-big           set output crc checksum to big-endian bin file\n");
+    printf("\t                        example:--out-bin-big out.bin\n");
+    printf("\t--out-txt               set output crc checksum to text file\n");
+    printf("\t                        example:--out-txt out.txt\n");
     printf("\t-g, --generate-table    generate crc table(example:-g table.c)\n");
     printf("\n");
     printf("\t-v, --version           print version\n");
@@ -207,7 +214,7 @@ static CMDL_ERROR_t CRCToolSetMSB(char *param)
 */
 static CMDL_ERROR_t CRCToolSetWide(char *str)
 {
-    CMDL_ERROR_t ret = CMDL_ERROR_NOT_PARAM;
+    CMDL_ERROR_t ret = CMDL_ERROR_INVALID_PARAM;
     size_t len;
 
     len = strlen(str);
@@ -285,7 +292,7 @@ static CMDL_ERROR_t CRCToolSetPoly(char *str)
     if(FALSE == CRCToolStringConvertToUInt32(str, &CRCTool.CRC.Poly))
     {
         printf("poly error!:%s", str);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     return CMDL_OK;
@@ -302,7 +309,7 @@ static CMDL_ERROR_t CRCToolSetInitValue(char *str)
     if(FALSE == CRCToolStringConvertToUInt32(str, &CRCTool.InitValue))
     {
         printf("init value error!:%s", str);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     return CMDL_OK;
@@ -319,7 +326,7 @@ static CMDL_ERROR_t CRCToolSetXorValue(char *str)
     if(FALSE == CRCToolStringConvertToUInt32(str, &CRCTool.XorValue))
     {
         printf("xor value error!:%s", str);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     return CMDL_OK;
@@ -335,23 +342,29 @@ static CMDL_ERROR_t CRCToolSetInHex(char *str)
 {
     size_t strLen = strlen(str);
 
+    if(CRC_TOOL_NOT_IN != CRCTool.InType)
+    {
+        printf("parameter conflict, with multiple inputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
+    }
+
     if(0 != (strLen & 1))
     {
         printf("string error!:%s", str);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     if(strLen > (CRC_TOOL_IN_HEX_MAX << 1))
     {
         printf("error! param out of range, max of %d", CRC_TOOL_IN_HEX_MAX);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
 
     if(FALSE == ConvertStringToHex(str, CRC_TOOL_IN_HEX_MAX << 1, CRCTool.InHex))
     {
         printf("input hex error!:%s", str);
-        return CMDL_ERROR_NOT_PARAM;
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     CRCTool.InType = CRC_TOOL_IN_HEX;
@@ -372,7 +385,8 @@ static CMDL_ERROR_t CRCToolSetInString(char *str)
 
     if(CRC_TOOL_NOT_IN != CRCTool.InType)
     {
-        return CMDL_ERROR_MULTIPLE_PARAMS;
+        printf("parameter conflict, with multiple inputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
     }
 
     CRCTool.InType = CRC_TOOL_IN_STRING;
@@ -392,7 +406,8 @@ static CMDL_ERROR_t CRCToolSetInFile(char *path)
 {
     if(CRC_TOOL_NOT_IN != CRCTool.InType)
     {
-        return CMDL_ERROR_MULTIPLE_PARAMS;
+        printf("parameter conflict, with multiple inputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
     }
 
     CRCTool.InType = CRC_TOOL_IN_FILE;
@@ -407,14 +422,35 @@ static CMDL_ERROR_t CRCToolSetInFile(char *path)
  * @参  数  path:输出文件的路径
  * @返回值
 */
-CMDL_ERROR_t CRCToolSetOutBinFile(char *path)
+static CMDL_ERROR_t CRCToolSetOutBinFileLittleEndian(char *path)
 {
     if(CRC_TOOL_NOT_OUT != CRCTool.OutType)
     {
-        return CMDL_ERROR_MULTIPLE_PARAMS;
+        printf("parameter conflict, with multiple outputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
     }
 
-    CRCTool.OutType = CRC_TOOL_OUT_BIN;
+    CRCTool.OutType = CRC_TOOL_OUT_BIN_LITTLE_ENDIAN;
+    CRCTool.OutFilePath = path;
+
+    return CMDL_OK;
+}
+
+/*
+ * @函数名  CRCToolSetOutBinFile
+ * @用  途  CRC工具设置将校验和以2进制输出到文件(命令行参数回调)
+ * @参  数  path:输出文件的路径
+ * @返回值
+*/
+static CMDL_ERROR_t CRCToolSetOutBinFileBigEndian(char *path)
+{
+    if(CRC_TOOL_NOT_OUT != CRCTool.OutType)
+    {
+        printf("parameter conflict, with multiple outputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
+    }
+
+    CRCTool.OutType = CRC_TOOL_OUT_BIN_BIG_ENDIAN;
     CRCTool.OutFilePath = path;
 
     return CMDL_OK;
@@ -426,11 +462,12 @@ CMDL_ERROR_t CRCToolSetOutBinFile(char *path)
  * @参  数  path:输出文件的路径
  * @返回值
 */
-CMDL_ERROR_t CRCToolSetOutTxtFile(char *path)
+static CMDL_ERROR_t CRCToolSetOutTxtFile(char *path)
 {
     if(CRC_TOOL_NOT_OUT != CRCTool.OutType)
     {
-        return CMDL_ERROR_MULTIPLE_PARAMS;
+        printf("parameter conflict, with multiple outputs\n");
+        return CMDL_ERROR_PARAM_CONFLICT;
     }
 
     CRCTool.OutType = CRC_TOOL_OUT_TXT;
@@ -574,10 +611,15 @@ void CRCToolChecksumOutBin(uint32_t checksum)
         return;
     }
 
-    checksumArr[0] = (uint8_t)((checksum >> 24) & 0xFF);
-    checksumArr[1] = (uint8_t)((checksum >> 16) & 0xFF);
-    checksumArr[2] = (uint8_t)((checksum >> 8) & 0xFF);
-    checksumArr[3] = (uint8_t)((checksum >> 0) & 0xFF);
+    if(CRC_TOOL_OUT_BIN_LITTLE_ENDIAN == CRCTool.OutType)
+    {
+        ConvertUInt32ToUInt8Arr(checksum, checksumArr, CONVERT_LITTLE_ENDIAN);
+    }
+    else if(CRC_TOOL_OUT_BIN_BIG_ENDIAN == CRCTool.OutType)
+    {
+        ConvertUInt32ToUInt8Arr(checksum, checksumArr, CONVERT_BIG_ENDIAN);
+    }
+
     fwrite(checksumArr, 1, 4, f);
 
     fclose(f);
@@ -604,10 +646,7 @@ void CRCToolChecksumOutTxt(uint32_t checksum)
         return;
     }
 
-    checksumArr[0] = (uint8_t)((checksum >> 24) & 0xFF);
-    checksumArr[1] = (uint8_t)((checksum >> 16) & 0xFF);
-    checksumArr[2] = (uint8_t)((checksum >> 8) & 0xFF);
-    checksumArr[3] = (uint8_t)((checksum >> 0) & 0xFF);
+    ConvertUInt32ToUInt8Arr(checksum, checksumArr, CONVERT_BIG_ENDIAN);
 
     ConvertHexToString(checksumArr, 4, checksumTxt);
 
@@ -656,11 +695,11 @@ void CRCToolGenerateTableFile()
 
     if(FALSE != isLSB)//isLSB==TRUE
     {
-        fprintf(f, "const uint%d_t CRCTableLSB0x%x[256] =\n", arrBitWide, poly);
+        fprintf(f, "const uint%d_t CRCTableLSB0x%X[256] =\n", arrBitWide, poly);
     }
     else
     {
-        fprintf(f, "const uint%d_t CRCTableMSB0x%x[256] =\n", arrBitWide, poly);
+        fprintf(f, "const uint%d_t CRCTableMSB0x%X[256] =\n", arrBitWide, poly);
     }
 
     fprintf(f, "{");
@@ -672,15 +711,15 @@ void CRCToolGenerateTableFile()
         }
         if(bitWide <= 8)
         {
-            fprintf(f, "0x%02x,", ((uint8_t *)(table))[i]);
+            fprintf(f, "0x%02X,", ((uint8_t *)(table))[i]);
         }
         else if(bitWide <= 16)
         {
-            fprintf(f, "0x%04x,", ((uint16_t *)(table))[i]);
+            fprintf(f, "0x%04X,", ((uint16_t *)(table))[i]);
         }
         else
         {
-            fprintf(f, "0x%08x,", ((uint32_t *)(table))[i]);
+            fprintf(f, "0x%08X,", ((uint32_t *)(table))[i]);
         }
     }
 
@@ -708,7 +747,6 @@ void CRCToolMain(int argc, char **argv)
 
     if(CMDL_OK != ret)
     {
-        printf("error\n");
         return;
     }
 
@@ -726,13 +764,17 @@ void CRCToolMain(int argc, char **argv)
     }
     else if(CRC_TOOL_IN_FILE == CRCTool.InType)
     {
-        if(TRUE == CRCToolInFileCheck(&crcChecksum))
+        if(FALSE == CRCToolInFileCheck(&crcChecksum))
         {
-            crcPrintFlag = TRUE;
+            return;  
         }
+
+        crcPrintFlag = TRUE;
     }
 
-    if(CRC_TOOL_OUT_BIN == CRCTool.OutType)
+    if((CRC_TOOL_OUT_BIN_LITTLE_ENDIAN == CRCTool.OutType)
+       || (CRC_TOOL_OUT_BIN_BIG_ENDIAN == CRCTool.OutType)
+    )
     {
         CRCToolChecksumOutBin(crcChecksum);
     }
@@ -755,7 +797,7 @@ void CRCToolMain(int argc, char **argv)
         CRCPrintInfo(&CRCTool.CRC);
         printf("init value:0x%X\n", CRCTool.InitValue);
         printf("init value:0x%X\n", CRCTool.XorValue);
-        printf("checksum=0x%X\n", crcChecksum);
+        printf("checksum:0x%X\n", crcChecksum);
     }
     
 }

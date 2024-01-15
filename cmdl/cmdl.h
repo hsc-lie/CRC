@@ -17,10 +17,10 @@ typedef uint8_t bool;
 typedef enum
 {
     CMDL_OK,                          //成功
-    CMDL_ERROR_NOT_IN_PARAM,          //没有输入参数
-    CMDL_ERROR_NOT_PARAM,             //参数不存在或不正确
+    CMDL_ERROR_NO_INPUT_PARAM,        //没有输入参数
+    CMDL_ERROR_INVALID_PARAM,         //参数不存在或不正确
     CMDL_ERROR_FUNC_NULL,             //回调函数为NULL
-    CMDL_ERROR_MULTIPLE_PARAMS,       //参数冲突
+    CMDL_ERROR_PARAM_CONFLICT,        //参数冲突
 }CMDL_ERROR_t;
 
 typedef enum
@@ -42,9 +42,9 @@ typedef struct
 
 typedef struct
 {
-    //ParamHandleFunc_t Func;
-    CMDLParam_t *ParamTable;          //参数列表
-    int ParamTableLen;                //参数列表长度
+    CMDLParamHandleFunc_t NotFlagParamFunc;      //无标志参数的回调函数
+    CMDLParam_t *ParamTable;                     //参数列表
+    int ParamTableLen;                           //参数列表长度
 }CMDL_t;
 
 extern CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv);

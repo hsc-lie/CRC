@@ -4,7 +4,7 @@
 #include "crc.h"
 
 //版本号
-#define CRC_TOOL_VERSION    "v0.0.01"
+#define CRC_TOOL_VERSION    "v0.0.02"
 
 //CRC工具可接受的输入16进制计算的最大数量
 #define CRC_TOOL_IN_HEX_MAX  32
@@ -19,9 +19,10 @@ typedef enum
 
 typedef enum
 {
-    CRC_TOOL_NOT_OUT,              //没有文件需要输出
-    CRC_TOOL_OUT_BIN,              //需要将计算的校验和输出为bin格式(暂只支持大端)
-    CRC_TOOL_OUT_TXT,              //需要将计算的校验和输出为文本格式
+    CRC_TOOL_NOT_OUT,                  //没有文件需要输出
+    CRC_TOOL_OUT_BIN_LITTLE_ENDIAN,    //需要将计算的校验和输出为bin格式(小端)
+    CRC_TOOL_OUT_BIN_BIG_ENDIAN,       //需要将计算的校验和输出为bin格式(大端)
+    CRC_TOOL_OUT_TXT,                  //需要将计算的校验和输出为文本格式
 }CRC_TOOL_OUT_TYPE_t;
 
 typedef struct

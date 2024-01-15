@@ -38,7 +38,7 @@ static CMDLParam_t *CMDLFindLetterParam(CMDLParam_t *table, int tableLen, char p
 */
 static CMDL_ERROR_t CMDLLetterParamAnalysis(CMDLParam_t *table, int tableLen, char *params, CMDLParamHandleFunc_t *func)
 {
-    CMDL_ERROR_t ret = CMDL_ERROR_NOT_IN_PARAM;
+    CMDL_ERROR_t ret = CMDL_ERROR_NO_INPUT_PARAM;
     CMDLParam_t *cmdlParam;
     
     *func = NULL;
@@ -49,13 +49,13 @@ static CMDL_ERROR_t CMDLLetterParamAnalysis(CMDLParam_t *table, int tableLen, ch
 
         if(NULL == cmdlParam)
         {
-            printf("not param -%c", *params);
-            return CMDL_ERROR_NOT_PARAM;
+            printf("invalid parameter -%c", *params);
+            return CMDL_ERROR_INVALID_PARAM;
         }
 
         if(NULL == cmdlParam->Func)
         {
-            printf("func is null\n");
+            printf("function is null\n");
             return CMDL_ERROR_FUNC_NULL;
         }
 
@@ -72,7 +72,7 @@ static CMDL_ERROR_t CMDLLetterParamAnalysis(CMDLParam_t *table, int tableLen, ch
             }
             else
             {
-                return CMDL_ERROR_MULTIPLE_PARAMS;
+                return CMDL_ERROR_PARAM_CONFLICT;
             }
         }
 
@@ -118,7 +118,7 @@ static CMDLParam_t *CMDLFindWordParam(CMDLParam_t *table, int tableLen, char *pa
 */
 static CMDL_ERROR_t CMDLWordParamAnalysis(CMDLParam_t *table, int tableLen, char *params, CMDLParamHandleFunc_t *func)
 {
-    CMDL_ERROR_t ret = CMDL_ERROR_NOT_IN_PARAM;
+    CMDL_ERROR_t ret = CMDL_ERROR_NO_INPUT_PARAM;
     CMDLParam_t *cmdlParam;
     
     *func = NULL;
@@ -127,13 +127,13 @@ static CMDL_ERROR_t CMDLWordParamAnalysis(CMDLParam_t *table, int tableLen, char
 
     if(NULL == cmdlParam)
     {
-        printf("not param --%s\n", params);
-        return CMDL_ERROR_NOT_PARAM;
+        printf("invalid parameter --%s\n", params);
+        return CMDL_ERROR_INVALID_PARAM;
     }
 
     if(NULL == cmdlParam->Func)
     {
-        printf("func is null\n");
+        printf("function is null\n");
         return CMDL_ERROR_FUNC_NULL;
     }
 
@@ -161,15 +161,20 @@ static CMDL_ERROR_t CMDLWordParamAnalysis(CMDLParam_t *table, int tableLen, char
 CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
 {
     int i;
-    CMDL_ERROR_t ret = CMDL_ERROR_NOT_IN_PARAM;
+    CMDL_ERROR_t ret = CMDL_ERROR_NO_INPUT_PARAM;
     CMDLParamHandleFunc_t multipleParamsHandleFunc;
 
     for(i = 1;i < argc;++i)
     {
         if(argv[i][0] != '-')//无flag参数
         {
-            printf("not Implement\n");
-            return CMDL_ERROR_NOT_PARAM;
+            if(NULL == cmdl->NotFlagParamFunc)
+            {
+                printf("invalid parameter\n");
+                return CMDL_ERROR_INVALID_PARAM;
+            }
+
+            ret = cmdl->NotFlagParamFunc(argv[i]); 
         }
         else if(argv[i][1] == '-')//双横杆flag参数
         {
@@ -192,8 +197,9 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
             }
             else
             {
-                ret = multipleParamsHandleFunc(NULL);
-            } 
+                printf("%s no input parameters\n", argv[i-1]);
+                return CMDL_ERROR_NO_INPUT_PARAM;
+            }
 
         }
         else//单横杆flag参数
@@ -217,8 +223,14 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
             }
             else
             {
-                ret = multipleParamsHandleFunc(NULL);
+                printf("%s no input parameters\n", argv[i-1]);
+                return CMDL_ERROR_NO_INPUT_PARAM;
             } 
+        }
+
+        if(CMDL_OK != ret)
+        {
+            return ret;
         }
     }
 
