@@ -8,8 +8,6 @@
 # CRC32                 checksum=0x972D361
 # CRC32/MPEG-2          checksum=0xD8F06C8F
 
-@echo off
-
 #设置CRC工具路径
 CRC_TOOL_PATH="build/out/crc"
 #设置CRC校验输入的字符串
@@ -39,4 +37,3 @@ echo "-----------------------------------"
 echo "CRC32/MPEG-2"
 ${CRC_TOOL_PATH} -m -w 32 -p 04C11DB7 --init FFFFFFFF --xor 00 -s ${IN_DATA}
 
-pause
