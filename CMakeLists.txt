@@ -15,7 +15,7 @@ set(EXECUTABLE_OUTPUT_PATH out)
 
 #FALSE:Release
 #TRUE:DEBUG
-set(DEBUG TRUE)
+set(DEBUG FALSE)
 
 #C标准
 set(C_STD -std=c99)
