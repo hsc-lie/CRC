@@ -4,16 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE (!(FALSE))
-#endif
-
-typedef uint8_t bool;
-
 typedef enum
 {
     CMDL_OK,                          //成功

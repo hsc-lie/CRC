@@ -45,18 +45,18 @@ static uint32_t ReversalBit(uint32_t value, uint8_t bitWide)
 static uint32_t CRCCalculateTableValue(CRC_t *crc, uint8_t index)
 {
     uint32_t i;
-    bool isLSB;
+    CRC_FIRST_BIT_t firstBit;
     uint8_t bitWide;
     uint32_t andValue;
     uint32_t crcTableValue;
     uint32_t poly;
 
-    isLSB = crc->IsLSB;
+    firstBit = crc->FirstBit;
     bitWide = crc->BitWide;
     poly = crc->Poly;
     crcTableValue = index;
 
-    if(FALSE != isLSB)//isLSB==TRUE
+    if(CRC_FIRST_BIT_LSB == firstBit)
     {
         poly = ReversalBit(poly, bitWide);
         andValue = 0x1;
@@ -72,7 +72,7 @@ static uint32_t CRCCalculateTableValue(CRC_t *crc, uint8_t index)
 
     for(i = 0;i < 8;++i)
     {
-        if(TRUE == crc->IsLSB)
+        if(CRC_FIRST_BIT_LSB == crc->FirstBit)
         {
             crcTableValue = (crcTableValue & andValue) ? ((crcTableValue >> 1) ^ poly) : (crcTableValue >> 1);
         }
@@ -194,22 +194,17 @@ static uint32_t CRC32LSBUpdateByte(void *table, uint32_t checksum, uint8_t *data
  * @函数名  CRCInit
  * @用  途  CRC结构体初始化
  * @参  数  crc:CRC结构体指针
+ *          firstBit:字节顺序,LSB与相当于Refin=true,Refin=true,MSB相当于Refin=false,Refin=false
  *          bitWide:CRC位宽(8,16,32)
  *          poly:多项式的值,这里不需要根据LSB和MSB进行手动反转
  *               例如x^8+x^2+x+1,这里poly都填0x07,CRCCalculateTableValue函数内部会根据LSB和MSB进行反转
- *          isLSB:TRUE为LSB,FALSE为MSB
  * @返回值  
 */
-void CRCInit(CRC_t *crc, uint8_t bitWide, uint32_t poly, bool isLSB)
+void CRCInit(CRC_t *crc, CRC_FIRST_BIT_t firstBit, uint8_t bitWide, uint32_t poly)
 {
-    if(crc == NULL)
-    {
-        return;
-    }
-
+    crc->FirstBit = firstBit;
     crc->BitWide = bitWide;
     crc->Poly = poly;
-    crc->IsLSB = isLSB;
     crc->CRCTable = NULL;
 }
 
@@ -231,13 +226,6 @@ void CRCGenerateTable(CRC_t *crc, void *table)
 {
     uint32_t i;
     uint8_t bitWide;
-
-    if((NULL == crc)
-       && (NULL == table)
-    )
-    {
-        return;
-    }
 
     bitWide = crc->BitWide;
 
@@ -271,12 +259,6 @@ void CRCGenerateTable(CRC_t *crc, void *table)
 */
 void CRCSetTable(CRC_t *crc, uint8_t *table)
 {
-    if((NULL == crc)
-       && (NULL == table)
-    )
-    {
-        return;
-    }
     crc->CRCTable = table;
 }
 
@@ -302,25 +284,18 @@ void CRCStart(CRC_t *crc, uint32_t initValue)
 */
 void CRCUpdate(CRC_t *crc, uint8_t *data, uint32_t len)
 {
-    bool isLSB;
+    CRC_FIRST_BIT_t firstBit;
     uint32_t checksum;
     void * table = NULL;
     uint8_t bitWide;
     CRCUpdateByteFunc_t crcUpdateByteFunc;
 
-    if((NULL == crc)
-      || (NULL == data)
-    )
-    {
-        return;   
-    }
-
-    isLSB = crc->IsLSB;
+    firstBit = crc->FirstBit;
     checksum = crc->Checksum;
     table = crc->CRCTable;
     bitWide = crc->BitWide;
     
-    if(FALSE != isLSB)//isLSB==TRUE
+    if(CRC_FIRST_BIT_LSB == firstBit)
     {
         if(bitWide <= 8)
         {

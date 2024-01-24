@@ -3,16 +3,13 @@
 
 #include <stdint.h>
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE (!(FALSE))
-#endif
-
 #ifndef NULL
 #define NULL ((void *)(0))
+#endif
+
+#if (!defined(FALSE) || !defined(TRUE))
+#define FALSE 0
+#define TRUE (!(FALSE))
 #endif
 
 typedef unsigned char bool;

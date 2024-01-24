@@ -23,10 +23,10 @@
     static uint32_t table[256];
     uint32_t checksum;
     
-    CRCInit(&crc, 32, 0x4C11DB7, TRUE);
+    CRCInit(&crc, CRC_FIRST_BIT_LSB, 32, 0x4C11DB7);
     CRCGenerateTable(&crc, table);//或直接调用CRCSetTable函数设置已经生成好的数组，CRCGenerateTable只需调用一次
     CRCStart(&crc, 0xFFFFFFFF);
-    CRCUpdate(&crc, "123456", 6);
+    CRCUpdate(&crc, (uint8_t *)"123456", 6);
     checksum = CRCGetChecksum(&crc, 0xFFFFFFFF);
 
 ### 三、编译当前工程的示例

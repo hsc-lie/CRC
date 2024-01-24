@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "convert.h"
 #include "cmdl.h"
 
 static CMDL_ERROR_t CRCToolPrintVersion(char *param);
@@ -119,10 +118,10 @@ static void CRCPrintInfo(CRC_t *crc)
 {
     uint32_t poly = crc->Poly;
     uint8_t bitWide = crc->BitWide;
-    bool isLSB = crc->IsLSB;
+    CRC_FIRST_BIT_t firstBit = crc->FirstBit;
 
     printf("CRC-%d", bitWide);
-    if(FALSE != isLSB)
+    if(CRC_FIRST_BIT_LSB == firstBit)
     {
         printf("-LSB\n");
     }
@@ -190,7 +189,7 @@ static CMDL_ERROR_t CRCToolPrintVersion(char *param)
 */
 static CMDL_ERROR_t CRCToolSetLSB(char *param)
 {
-    CRCTool.CRC.IsLSB = TRUE;
+    CRCTool.CRC.FirstBit = CRC_FIRST_BIT_LSB;
     return CMDL_OK;
 }
 
@@ -202,7 +201,7 @@ static CMDL_ERROR_t CRCToolSetLSB(char *param)
 */
 static CMDL_ERROR_t CRCToolSetMSB(char *param)
 {
-    CRCTool.CRC.IsLSB = FALSE;
+    CRCTool.CRC.FirstBit = CRC_FIRST_BIT_MSB;
     return CMDL_OK;
 }
 
@@ -498,7 +497,7 @@ static CMDL_ERROR_t CRCToolSetGenerateTable(char *path)
 */
 void CRCToolInit()
 {
-    CRCInit(&CRCTool.CRC, 32, 0x4C11DB7, TRUE);
+    CRCInit(&CRCTool.CRC, CRC_FIRST_BIT_LSB, 32, 0x4C11DB7);
     CRCTool.InitValue = 0xFFFFFFFF;
     CRCTool.XorValue = 0xFFFFFFFF;
     CRCTool.InType = CRC_TOOL_NOT_IN;
@@ -666,7 +665,7 @@ void CRCToolGenerateTableFile()
     int i;
     FILE * f;
     char *tablePath = CRCTool.GenerateTablePath;
-    bool isLSB = CRCTool.CRC.IsLSB;
+    CRC_FIRST_BIT_t firstBit = CRCTool.CRC.FirstBit;
     uint8_t bitWide = CRCTool.CRC.BitWide;
     uint8_t arrBitWide;
     uint32_t poly = CRCTool.CRC.Poly;
@@ -693,7 +692,7 @@ void CRCToolGenerateTableFile()
         arrBitWide = 32;
     }
 
-    if(FALSE != isLSB)//isLSB==TRUE
+    if(CRC_FIRST_BIT_LSB == firstBit)
     {
         fprintf(f, "const uint%d_t CRCTableLSB0x%X[256] =\n", arrBitWide, poly);
     }

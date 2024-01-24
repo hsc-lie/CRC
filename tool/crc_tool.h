@@ -1,6 +1,7 @@
 #ifndef __CRC_TOOL_H_
 #define __CRC_TOOL_H_
 
+#include "convert.h"
 #include "crc.h"
 
 //版本号
