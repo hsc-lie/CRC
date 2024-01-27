@@ -49,7 +49,7 @@ static CMDL_ERROR_t CMDLLetterParamAnalysis(CMDLParam_t *table, int tableLen, ch
 
         if(NULL == cmdlParam)
         {
-            printf("invalid parameter -%c", *params);
+            printf("invalid parameter \"-%c\"", *params);
             return CMDL_ERROR_INVALID_PARAM;
         }
 
@@ -127,7 +127,7 @@ static CMDL_ERROR_t CMDLWordParamAnalysis(CMDLParam_t *table, int tableLen, char
 
     if(NULL == cmdlParam)
     {
-        printf("invalid parameter --%s\n", params);
+        printf("invalid parameter \"--%s\"\n", params);
         return CMDL_ERROR_INVALID_PARAM;
     }
 
@@ -170,7 +170,7 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
         {
             if(NULL == cmdl->NotFlagParamFunc)
             {
-                printf("invalid parameter\n");
+                printf("invalid parameter \"%s\"\n", argv[i]);
                 return CMDL_ERROR_INVALID_PARAM;
             }
 
@@ -178,6 +178,12 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
         }
         else if(argv[i][1] == '-')//双横杆flag参数
         {
+            if('\0' == argv[i][2])
+            {
+                printf("invalid parameter \"--\"\n");
+                return CMDL_ERROR_INVALID_PARAM;
+            }
+
             ret = CMDLWordParamAnalysis(cmdl->ParamTable, cmdl->ParamTableLen, &argv[i][2], &multipleParamsHandleFunc);
 
             if(CMDL_OK != ret)
@@ -197,13 +203,19 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
             }
             else
             {
-                printf("%s no input parameters\n", argv[i-1]);
+                printf("\"%s\" no input parameters\n", argv[i-1]);
                 return CMDL_ERROR_NO_INPUT_PARAM;
             }
 
         }
         else//单横杆flag参数
         {
+            if('\0' == argv[i][1])
+            {
+                printf("invalid parameter \"-\"\n");
+                return CMDL_ERROR_INVALID_PARAM;
+            }
+
             ret = CMDLLetterParamAnalysis(cmdl->ParamTable, cmdl->ParamTableLen, &argv[i][1], &multipleParamsHandleFunc);
 
             if(CMDL_OK != ret)
@@ -223,7 +235,7 @@ CMDL_ERROR_t CMDLAnalysis(CMDL_t *cmdl, int argc, char **argv)
             }
             else
             {
-                printf("%s no input parameters\n", argv[i-1]);
+                printf("\"%s\" no input parameters\n", argv[i-1]);
                 return CMDL_ERROR_NO_INPUT_PARAM;
             } 
         }

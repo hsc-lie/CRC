@@ -49,7 +49,7 @@ static CMDLParam_t CMDLParamTable[] =
     {CMDL_PARAM_TYPE_SINGLE, 'v', "version", CRCToolPrintVersion},
     {CMDL_PARAM_TYPE_SINGLE, '\0', "help", CRCToolPrintHelp},
 
-    //{CMDL_PARAM_TYPE_MULTIPLE, '\0', "test", Printb},
+    //{CMDL_PARAM_TYPE_MULTIPLE, '\0', "", NULL},
 };
 
 static CMDL_t CMDL = 
@@ -739,6 +739,12 @@ void CRCToolMain(int argc, char **argv)
     CMDL_ERROR_t ret;
     uint32_t crcChecksum = 0;
     bool crcPrintFlag = FALSE;
+
+    if(1 == argc)
+    {
+        CRCToolPrintHelp(NULL);
+        return;
+    }
 
     CRCToolInit();
 
