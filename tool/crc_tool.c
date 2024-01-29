@@ -239,6 +239,12 @@ static CMDL_ERROR_t CRCToolSetWide(char *str)
             ret = CMDL_OK;
         }
     }
+
+    if(CMDL_ERROR_INVALID_PARAM == ret)
+    {
+        printf("wide parameter error \"%s\"\n", str);
+        printf("please select parameter 8|16|32\n");
+    }
     
     return ret;
 }
